@@ -1,0 +1,29 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'io.github.mediagrabber.sample'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'io.github.mediagrabber.sample'
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName '1.0'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    lint { abortOnError false; checkReleaseBuilds false }
+    buildTypes {
+        release {
+            minifyEnabled false
+            // توقيع تجريبي ليُثبَّت الملف مباشرة. للنشر الحقيقي استخدم مفتاحك الخاص.
+            signingConfig signingConfigs.debug
+        }
+    }
+}
+
+dependencies {
+    implementation project(':mediagrabber')
+}

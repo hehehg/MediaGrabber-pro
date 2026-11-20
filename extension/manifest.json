@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Media Grabber – محمّل الوسائط",
+  "version": "1.0.0",
+  "description": "اكتشاف الفيديو والصوت والصور في أي صفحة وتنزيلها مباشرة، مع وضع الالتقاط بالنقر.",
+  "minimum_chrome_version": "111",
+  "permissions": ["downloads", "webRequest", "storage", "webNavigation"],
+  "host_permissions": ["<all_urls>"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_popup": "popup.html", "default_title": "Media Grabber" },
+  "icons": { "16": "icons/16.png", "48": "icons/48.png", "128": "icons/128.png" },
+  "content_scripts": [
+    { "matches": ["<all_urls>"], "js": ["core/mg-core.js"], "run_at": "document_start", "all_frames": true, "match_about_blank": true, "world": "MAIN" },
+    { "matches": ["<all_urls>"], "js": ["bridge.js"], "run_at": "document_start", "all_frames": true, "match_about_blank": true }
+  ],
+  "commands": {
+    "toggle-pick": { "suggested_key": { "default": "Alt+Shift+P" }, "description": "تبديل وضع الالتقاط بالنقر" }
+  }
+}

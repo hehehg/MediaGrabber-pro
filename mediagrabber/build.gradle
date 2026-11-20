@@ -1,0 +1,20 @@
+plugins { id 'com.android.library' }
+
+android {
+    namespace 'io.github.mediagrabber'
+    compileSdk 34
+    defaultConfig { minSdk 21 }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    lint { abortOnError false; checkReleaseBuilds false }
+    sourceSets {
+        // نفس سكربت الإضافة (mg-core.js) يُستخدم داخل الـ WebView — مصدر واحد للكود
+        main { assets.srcDirs = ['src/main/assets', '../extension/core'] }
+    }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.11.0'
+}
