@@ -332,12 +332,25 @@ button{font:inherit;cursor:pointer;border:0;color:inherit;background:#374151;bor
 
   /* ---------- وضع الالتقاط بالنقر ---------- */
   const BLOCK = ['click', 'auxclick', 'mousedown', 'mouseup', 'pointerdown', 'pointerup', 'contextmenu'];
-  function mediaEl(x, y) {
-    for (const el of document.elementsFromPoint(x, y)) {
-      if (el === hostEl) continue;
-      const t = el.tagName;
-      if (t === 'VIDEO' || t === 'AUDIO') return { el, t: 'media' };
-      if (t === 'IMG' && (el.currentSrc || el.src)) return { el, t: 'img', url: el.currentSrc || el.src };
+  function deepQuery(sel, rootNode, out) {
+    out = out || []; rootNode = rootNode || document;
+    rootNode.querySelectorAll(sel).forEach(e => out.push(e));
+    rootNode.querySelectorAll('*').forEach(e => { if (e.shadowRoot) deepQuery(sel, e.shadowRoot, out); });
+    return out;
+  }
+  const hit = (el, x, y) => { const r = el.getBoundingClientRect(); return r.width > 80 && r.height > 50 && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom; };
+  function mediaEl(x, y, deep) {
+    const stack = document.elementsFromPoint(x, y).filter(el => el !== hostEl);
+    // 1) الفيديو/الصوت له الأولوية حتى لو كانت فوقه طبقات شفافة أو صور أيقونات
+    for (const el of stack) if (el.tagName === 'VIDEO' || el.tagName === 'AUDIO') return { el, t: 'media' };
+    // 2) فيديو تحت غلاف المشغّل (حتى داخل Shadow DOM) عند النقر
+    if (deep) {
+      const v = deepQuery('video,audio').find(el => hit(el, x, y));
+      if (v) return { el: v, t: 'media' };
+    }
+    // 3) ثم الصور والخلفيات والروابط
+    for (const el of stack) {
+      if (el.tagName === 'IMG' && (el.currentSrc || el.src)) return { el, t: 'img', url: el.currentSrc || el.src };
       let bg = ''; try { bg = getComputedStyle(el).backgroundImage; } catch (e) {}
       const m = bg && bg !== 'none' && bg.match(/url\((['"]?)(.*?)\1\)/);
       if (m && m[2]) return { el, t: 'bg', url: m[2] };
@@ -355,7 +368,7 @@ button{font:inherit;cursor:pointer;border:0;color:inherit;background:#374151;bor
     if (e.target === hostEl) return;
     e.preventDefault(); e.stopImmediatePropagation();
     if (e.type === 'click') {
-      const m = mediaEl(e.clientX, e.clientY);
+      const m = mediaEl(e.clientX, e.clientY, true);
       if (!m) { toast('لا توجد وسائط هنا'); return; }
       const it = resolveItem(m);
       if (!it) { toast('لم يُعثر على مصدر قابل للتنزيل (قد يكون محميًا)'); return; }
